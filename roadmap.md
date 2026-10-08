@@ -88,6 +88,6 @@
 
 ## Logo & deel-kaarten (okt 2026, plan goedgekeurd)
 - [ ] Officieel konijn (upload met paarse/groene cirkels) als enige bron; nooit een ander konijn.
-- [ ] Deel-kaarten per pagina in code getekend (geen AI), 3 varianten.
+- [ ] Deel-kaarten per pagina in code getekend (geen AI): ÉÉN per pagina per taal, geen rotatie (cache-vriendelijk).
 - [ ] Profielkaart herontwerp, Ontdek vertaald, vertaal-audit, perspagina.
 - [ ] Scaleway-sleutels (wacht op gebruiker).
