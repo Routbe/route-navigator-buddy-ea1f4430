@@ -1,3 +1,4 @@
+import { runSchemaEnsure } from "@/lib/db/schema-ensure.server";
 /**
  * Bedrijfs- en influencerverificatie — beide met manuele goedkeuring.
  *
@@ -30,6 +31,7 @@ let tablesReady = false;
 /** Maakt de tabellen aan wanneer migratie 41 nog niet liep. */
 async function ensureTables() {
   if (tablesReady) return;
+  await runSchemaEnsure(async () => {
   await sql`
     create table if not exists public.business_verifications (
       id             uuid primary key default gen_random_uuid(),
@@ -73,6 +75,7 @@ async function ensureTables() {
       add column if not exists business_vat text,
       add column if not exists is_influencer boolean not null default false
   `;
+  }, "verification-requests.server.ts");
   tablesReady = true;
 }
 

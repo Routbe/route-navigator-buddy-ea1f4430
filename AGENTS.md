@@ -12,7 +12,7 @@
 <!-- LOVABLE:END -->
 
 ## Architecture rules
-- Neon (`DATABASE_URL`) is the only database; schema changes are idempotent files in `db/NN_*.sql`. Why: the app is deployed on Vercel outside Lovable Cloud.
+- Neon is the only database; the runtime connects as least-privilege `rout_app` (`DATABASE_URL`, DML only, BYPASSRLS — access control is server-side) and schema changes are idempotent `db/NN_*.sql` files applied by `scripts/migrate.ts` with the owner `MIGRATION_URL`; runtime `create table if not exists` safety nets go through `runSchemaEnsure` so privilege errors are skipped. Why: Vercel deploy outside Lovable Cloud, and a leaked app credential must never alter schema or roles.
 - Login ON rout.be (Better Auth, `better-auth.server.ts`) and login VIA rout.be (OIDC provider, `src/lib/oauth/*`) never share config; provider env vars use the `ROUT_PROVIDER_*` prefix. Why: prevents one role breaking the other.
 - Sign-in tiles are always rendered; unconfigured providers show a notice instead of sending a request. Why: missing keys must never hide options.
 - Social sign-in / OAuth callbacks for a provider whose credentials are missing are refused before Better Auth is created, with code `provider_not_configured` (400) and a server warning naming the provider and missing keys (`api_/auth/$.ts` guard + `isProviderConfigured`/`missingProviderKeys` in `better-auth.server.ts`). Why: a missing key must never crash the auth handler or block other sign-in methods with a generic 500.

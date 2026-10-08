@@ -1,3 +1,4 @@
+import { runSchemaEnsure } from "@/lib/db/schema-ensure.server";
 import { sql } from "@/lib/neon";
 
 /** Geboortedatum per account. Alleen via deze helpers lezen/schrijven. */
@@ -6,7 +7,7 @@ export const MIN_AGE = 13;
 
 let ready: Promise<void> | null = null;
 async function ensureTable() {
-  ready ??= (async () => {
+  ready ??= runSchemaEnsure(async () => {
     await sql`
       create table if not exists public.user_birthdates (
         user_id uuid primary key references public.users(id) on delete cascade,
@@ -14,7 +15,7 @@ async function ensureTable() {
         source text not null default 'user',
         updated_at timestamptz not null default now()
       )`;
-  })().catch((e) => {
+  }, "birthdate.server.ts").catch((e) => {
     ready = null;
     throw e;
   });

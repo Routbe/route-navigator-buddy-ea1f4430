@@ -1,3 +1,4 @@
+import { runSchemaEnsure } from "@/lib/db/schema-ensure.server";
 import { sql } from "@/lib/neon";
 
 /**
@@ -26,7 +27,7 @@ let tableReady: Promise<void> | null = null;
 
 /** Zorgt dat migratie 40 aanwezig is, ook op databases zonder migratierun. */
 async function ensureTable(): Promise<void> {
-  tableReady ??= (async () => {
+  tableReady ??= runSchemaEnsure(async () => {
     await sql`
       create table if not exists public.profile_visits (
         id              bigserial primary key,
@@ -49,7 +50,7 @@ async function ensureTable(): Promise<void> {
       create index if not exists profile_visits_handle_time_idx
         on public.profile_visits (lower(handle), created_at desc)
     `;
-  })().catch((error) => {
+  }, "visits.server.ts").catch((error) => {
     tableReady = null;
     throw error;
   });

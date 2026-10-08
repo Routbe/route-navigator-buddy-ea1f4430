@@ -1,3 +1,4 @@
+import { runSchemaEnsure } from "@/lib/db/schema-ensure.server";
 import { sql } from "@/lib/neon";
 import { isReservedHandle, normalizeHandle } from "@/lib/profile";
 import { normalizeHandleForStorage } from "@/lib/handle-rules";
@@ -66,7 +67,7 @@ function toAliasProfile(row: Row): AliasProfile {
  */
 let tableReady: Promise<void> | null = null;
 async function ensureAliasTable(): Promise<void> {
-  tableReady ??= (async () => {
+  tableReady ??= runSchemaEnsure(async () => {
     await sql`
       create table if not exists public.alias_profiles (
         user_id        uuid primary key references public.profiles(id) on delete cascade,
@@ -89,7 +90,7 @@ async function ensureAliasTable(): Promise<void> {
       create unique index if not exists alias_profiles_handle_ci_key
         on public.alias_profiles (lower(handle))
     `;
-  })().catch((error) => {
+  }, "alias-profile.server.ts").catch((error) => {
     tableReady = null;
     throw error;
   });

@@ -60,7 +60,7 @@ async function serveOg(page: string, locale: "nl" | "en" | "fr" | "de", origin: 
     if (stored) {
       s3.putObject("internal", key, png, { contentType: "image/png" }).catch((e) => console.error("[brand/og] upload failed", e));
     }
-    return new Response(png, { headers: { "content-type": "image/png", "cache-control": LONG_CACHE } });
+    return new Response(new Uint8Array(png), { headers: { "content-type": "image/png", "cache-control": LONG_CACHE } });
   } catch (error) {
     console.error("[brand/og] render failed", error);
     return new Response(svg, { headers: { "content-type": "image/svg+xml", "cache-control": "public, max-age=300" } });

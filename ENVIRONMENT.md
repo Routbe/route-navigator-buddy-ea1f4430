@@ -8,7 +8,8 @@
 
 | Key | Verplicht | Wat / waar |
 |---|---|---|
-| `DATABASE_URL` | ja | Neon → Connection string (pooled) |
+| `DATABASE_URL` | ja | Neon → Connection string (**pooled**) als rol **`rout_app`** (alleen lezen/schrijven van rijen, geen schemawijzigingen). Nooit `neondb_owner`. |
+| `MIGRATION_URL` | alleen build/CI | Neon → Connection string (**direct**, zonder `-pooler`) als **`neondb_owner`**. Alleen voor `bun run db:migrate`; nooit als runtime-variabele beschikbaar maken. |
 | `BETTER_AUTH_SECRET` | ja | Willekeurige tekst van **minstens 32 tekens** (`openssl rand -hex 32`). Zonder dit werkt Google/GitHub/e-mail-login niet. |
 | `BETTER_AUTH_URL` | ja | `https://rout.be` (zonder `/` op het einde) — basis voor alle callback-URL's |
 | `NEXT_PUBLIC_APP_URL` | aanbevolen | `https://rout.be` |
@@ -101,3 +102,11 @@ Alle variabelen voor die rol beginnen met `ROUT_PROVIDER_` en staan los van bove
 - Register `https://<domain>/api/auth/callback/<provider>` at Google/GitHub/GitLab/Apple (old `/api/public/auth/...` URLs no longer work).
 - Provider key aliases: `<PROVIDER>_OAUTH_CLIENT_ID/SECRET`, `AUTH_<PROVIDER>_ID/SECRET`, `<PROVIDER>_ID/SECRET`.
 - Check `/api/public/auth/providers?diagnose=1` for missing key names (never values) and callback URLs.
+
+
+## Database-rollen (least privilege)
+
+- **Runtime** (`DATABASE_URL`): rol `rout_app` — SELECT/INSERT/UPDATE/DELETE, geen DDL, geen rollenbeheer. Aangemaakt door `db/53_least_privilege.sql`. Wachtwoord zet je zelf in de Neon SQL-editor: `alter role rout_app with password '…';`
+- **Migraties** (`MIGRATION_URL`): owner-rol, direct endpoint. `bun run db:migrate` draait `db/NN_*.sql` één keer per bestand (bijgehouden in `public.schema_migrations`) en weigert te starten als `MIGRATION_URL` gelijk is aan `DATABASE_URL`.
+- Preview-deploys: eigen Neon-branch met eigen `DATABASE_URL`/`MIGRATION_URL`, nooit productie.
+- Controle: admin → deployment status toont "Runtime database role".

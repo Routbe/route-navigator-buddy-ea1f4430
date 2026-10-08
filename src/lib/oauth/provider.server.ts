@@ -1,3 +1,4 @@
+import { runSchemaEnsure } from "@/lib/db/schema-ensure.server";
 /**
  * "Login met ROUT" — native OAuth 2.1 / OIDC provider.
  *
@@ -105,6 +106,7 @@ let tablesReady = false;
 /** Vangnet zodat de console ook werkt vóór migratie 42 handmatig is gedraaid. */
 export async function ensureTables(): Promise<void> {
   if (tablesReady) return;
+  await runSchemaEnsure(async () => {
   await sql`create table if not exists public.oauth_clients (
     id uuid primary key default gen_random_uuid(),
     owner_user_id uuid not null,
@@ -190,6 +192,7 @@ export async function ensureTables(): Promise<void> {
     reviewed_at timestamptz,
     created_at timestamptz not null default now()
   )`;
+  }, "provider.server.ts");
   tablesReady = true;
 }
 
