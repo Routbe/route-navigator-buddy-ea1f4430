@@ -108,15 +108,16 @@ export const PAGE_CARDS: Record<PageKey, PageCard> = {
   },
 };
 
-export function pageCardImage(key: PageKey) {
-  return `${SITE_ORIGIN}/brand/og/${PAGE_CARDS[key].image}`;
+/** Eén vaste, in code getekende kaart per pagina per taal (geen rotatie). */
+export function pageCardImage(key: PageKey, locale: Locale = "en") {
+  return `${SITE_ORIGIN}/brand/og/${key}-${locale}.png`;
 }
 
 /** Volledige `meta` voor de `head()` van een publieke pagina. */
 export function pageMeta(key: PageKey, locale: Locale = "en") {
   const card = PAGE_CARDS[key];
   const t = card.text[locale] ?? card.text.en;
-  const image = pageCardImage(key);
+  const image = pageCardImage(key, locale);
   const url = `${SITE_ORIGIN}${card.path}`;
   return [
     { title: t.title },
@@ -130,7 +131,7 @@ export function pageMeta(key: PageKey, locale: Locale = "en") {
     { property: "og:image", content: image },
     { property: "og:image:width", content: "1200" },
     { property: "og:image:height", content: "630" },
-    { property: "og:image:type", content: "image/jpeg" },
+    { property: "og:image:type", content: "image/png" },
     { property: "og:image:alt", content: t.alt },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: t.title },

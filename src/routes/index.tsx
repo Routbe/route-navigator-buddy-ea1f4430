@@ -1,3 +1,4 @@
+import { pageCardImage } from "@/lib/page-cards";
 import { createFileRoute } from "@tanstack/react-router";
 import Page from "@/pages/Index";
 import { HostProfile } from "@/pages/HostProfile";
@@ -14,7 +15,7 @@ export const Route = createFileRoute("/")({
     return { ...locale, hostHandle: host.handle };
   },
   head: ({ loaderData }) => ({
-    meta: socialMeta(loaderData?.locale ?? "en", `https://rout.be${OG_IMAGE}`),
+    meta: socialMeta(loaderData?.locale ?? "en", pageCardImage("home", loaderData?.locale ?? "en")),
     links: canonicalLinks("/"),
     scripts: jsonLdScript({
       "@context": "https://schema.org",
