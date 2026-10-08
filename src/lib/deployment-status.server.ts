@@ -103,6 +103,20 @@ export async function getDeploymentStatus(): Promise<DeploymentStatus> {
         "deployment-status.databaseProbe",
       );
       serviceRoleWorks = true;
+      // Least privilege: the runtime must not connect as the owner role.
+      const who = (await sql.query(`select current_user as role`, [])) as { role: string }[];
+      const role = who[0]?.role ?? "";
+      items.push({
+        name: "DATABASE_ROLE",
+        label: "Runtime database role",
+        present: role === "rout_app",
+        required: false,
+        hint:
+          role === "rout_app"
+            ? "Runtime uses the least-privilege role rout_app (DML only)."
+            : `Runtime connects as "${role}". Point DATABASE_URL at rout_app; keep the owner only in MIGRATION_URL.`,
+        preview: role || null,
+      });
     } catch (error) {
       serviceRoleError = error instanceof Error ? error.message : String(error);
     }

@@ -1,3 +1,4 @@
+import { runSchemaEnsure } from "@/lib/db/schema-ensure.server";
 import { sql } from "@/lib/neon";
 import { parseTourDraft, type TourDraft } from "@/lib/tour-draft";
 
@@ -10,6 +11,7 @@ let ensured = false;
  */
 async function ensureTable() {
   if (ensured) return;
+  await runSchemaEnsure(async () => {
   await sql`
     create table if not exists public.onboarding_drafts (
       email text primary key,
@@ -17,6 +19,7 @@ async function ensureTable() {
       updated_at timestamptz not null default now()
     )
   `;
+  }, "tour-draft.server.ts");
   ensured = true;
 }
 

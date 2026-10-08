@@ -1,3 +1,4 @@
+import { runSchemaEnsure } from "@/lib/db/schema-ensure.server";
 /**
  * Whitelist-flow voor influencer- en bedrijfsverificatie.
  * Beheerder keurt specifieke namen goed → gebruiker claimt er één.
@@ -11,6 +12,7 @@ let ready = false;
 
 async function ensureTable() {
   if (ready) return;
+  await runSchemaEnsure(async () => {
   await sql`
     create table if not exists public.approved_handles (
       id uuid primary key default gen_random_uuid(),
@@ -24,6 +26,7 @@ async function ensureTable() {
     )`;
   await sql`create unique index if not exists approved_handles_user_handle_idx
     on public.approved_handles (user_id, lower(handle))`;
+  }, "approved-handles.server.ts");
   ready = true;
 }
 

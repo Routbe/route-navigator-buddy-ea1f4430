@@ -1,3 +1,4 @@
+import { runSchemaEnsure } from "@/lib/db/schema-ensure.server";
 import { sql } from "@/lib/neon";
 
 /**
@@ -54,14 +55,14 @@ export function generateCode(): string {
 
 let tableReady: Promise<void> | null = null;
 async function ensureTable() {
-  tableReady ??= (async () => {
+  tableReady ??= runSchemaEnsure(async () => {
     await sql`
       create table if not exists public.fediverse_email_otp (
         pending_key text primary key, email text not null, code_hash text not null,
         attempts integer not null default 0, locked_until timestamptz,
         expires_at timestamptz not null, created_at timestamptz not null default now()
       )`;
-  })().catch((e) => {
+  }, "fediverse-otp.server.ts").catch((e) => {
     tableReady = null;
     throw e;
   });
