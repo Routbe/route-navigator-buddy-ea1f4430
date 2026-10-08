@@ -8,7 +8,7 @@ import type { Locale } from "@/lib/i18n";
  * when a link carries one. Every locale gets its own OpenGraph + Twitter card.
  */
 
-export const OG_IMAGE = "/og-banner.jpg";
+export const OG_IMAGE = "/brand/og/home-en.png";
 
 type Card = { title: string; description: string };
 

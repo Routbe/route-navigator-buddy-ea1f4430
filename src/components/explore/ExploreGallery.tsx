@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
+import { Search } from "lucide-react";
 import { BadgeCheck, ExternalLink } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import type { ShowcaseCard } from "@/lib/showcase.functions";
@@ -7,13 +10,27 @@ import { cn } from "@/lib/utils";
 /** Bento layout: first card large, then a repeating wide/square rhythm. */
 const SPAN = ["sm:col-span-2 sm:row-span-2", "", "", "sm:col-span-2", "", "sm:row-span-2", "", "sm:col-span-2"];
 
-export function ExploreGallery({ cards }: { cards: ShowcaseCard[] }) {
+export function ExploreGallery({ cards, filters = false }: { cards: ShowcaseCard[]; filters?: boolean }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState<ShowcaseCard | null>(null);
+  const [query, setQuery] = useState("");
+  const [onlyVerified, setOnlyVerified] = useState(false);
+  const shown = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return cards.filter(
+      (c) =>
+        (!onlyVerified || c.verified) &&
+        (!q || c.handle.toLowerCase().includes(q) || (c.displayName ?? "").toLowerCase().includes(q)),
+    );
+  }, [cards, query, onlyVerified]);
 
   if (!cards.length) {
     return (
       <div className="rounded-3xl border border-dashed border-border p-12 text-center text-muted-foreground">
-        Er staan nog geen voorbeeldprofielen klaar. Kom snel terug.
+        <p>{t("explore.empty")}</p>
+        <Link to="/tour" className="mt-4 inline-flex font-medium text-foreground underline underline-offset-4">
+          {t("explore.cta")}
+        </Link>
       </div>
     );
   }
@@ -26,8 +43,40 @@ export function ExploreGallery({ cards }: { cards: ShowcaseCard[] }) {
 
   return (
     <>
+      {filters && (
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <label className="relative block w-full sm:max-w-xs">
+            <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" aria-hidden />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={t("explore.search")}
+              aria-label={t("explore.search")}
+              className="min-h-11 w-full rounded-2xl border border-border bg-card pl-11 pr-4 text-sm text-foreground outline-none transition-colors focus:border-foreground/50"
+            />
+          </label>
+          <div className="flex gap-2" role="group">
+            {([false, true] as const).map((v) => (
+              <button
+                key={String(v)}
+                type="button"
+                aria-pressed={onlyVerified === v}
+                onClick={() => setOnlyVerified(v)}
+                className={cn(
+                  "min-h-10 rounded-full border px-4 text-sm font-medium transition-colors",
+                  onlyVerified === v ? "border-foreground bg-foreground text-background" : "border-border text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {t(v ? "explore.filter.verified" : "explore.filter.all")}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {shown.length === 0 && <p className="py-12 text-center text-muted-foreground">{t("explore.noResults")}</p>}
       <div className="grid auto-rows-[200px] grid-cols-1 gap-4 sm:grid-cols-4">
-        {cards.map((c, i) => {
+        {shown.map((c, i) => {
           const big = i === 0;
           return (
             <a
@@ -35,7 +84,7 @@ export function ExploreGallery({ cards }: { cards: ShowcaseCard[] }) {
               href={`/${c.handle}`}
               onClick={(e) => onPick(c, e)}
               className={cn(
-                "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-0.5 hover:border-foreground/40",
+                "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-border bg-card p-6 transition-all duration-300 hover:-translate-y-1 hover:border-foreground/40 hover:shadow-lg active:scale-[0.99] animate-in fade-in slide-in-from-bottom-2",
                 SPAN[i % SPAN.length],
               )}
             >
@@ -50,7 +99,7 @@ export function ExploreGallery({ cards }: { cards: ShowcaseCard[] }) {
                 <div className="min-w-0">
                   <p className={cn("flex items-center gap-1.5 truncate font-serif font-semibold text-foreground", big ? "text-2xl" : "text-base")}>
                     {c.displayName ?? c.handle}
-                    {c.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label="Geverifieerd" />}
+                    {c.verified && <BadgeCheck className="h-4 w-4 shrink-0 text-primary" aria-label={t("explore.filter.verified")} />}
                   </p>
                   <p className="truncate font-mono text-xs text-muted-foreground">rout.be/{c.handle}</p>
                 </div>
@@ -61,7 +110,7 @@ export function ExploreGallery({ cards }: { cards: ShowcaseCard[] }) {
                 </p>
               )}
               <span className="inline-flex items-center gap-1 text-xs font-medium text-foreground opacity-0 transition-opacity group-hover:opacity-100">
-                Bekijk profiel <ExternalLink className="h-3 w-3" aria-hidden />
+                {t("explore.view")} <ExternalLink className="h-3 w-3" aria-hidden />
               </span>
             </a>
           );
@@ -70,12 +119,12 @@ export function ExploreGallery({ cards }: { cards: ShowcaseCard[] }) {
 
       <Dialog open={!!open} onOpenChange={(o) => !o && setOpen(null)}>
         <DialogContent className="h-[85vh] max-w-md overflow-hidden p-0">
-          <DialogTitle className="sr-only">{open ? `Profiel ${open.handle}` : "Profiel"}</DialogTitle>
+          <DialogTitle className="sr-only">{open ? `${t("explore.profile")} ${open.handle}` : t("explore.profile")}</DialogTitle>
           {open && (
             <div className="flex h-full flex-col">
               <iframe title={`rout.be/${open.handle}`} src={`/${open.handle}`} className="w-full flex-1 border-0" />
               <a href={`/${open.handle}`} className="flex min-h-12 items-center justify-center gap-2 border-t border-border text-sm font-medium text-foreground hover:bg-accent">
-                Open volledig profiel <ExternalLink className="h-4 w-4" aria-hidden />
+                {t("explore.openFull")} <ExternalLink className="h-4 w-4" aria-hidden />
               </a>
             </div>
           )}

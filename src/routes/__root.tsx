@@ -100,15 +100,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           "Ontwerp stijlvolle QR-codes en trackbare korte links. Privacyvriendelijk en in eigen beheer.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:image", content: "https://rout.be/og-banner.jpg" },
-      { property: "og:image:width", content: "1200" },
-      { property: "og:image:height", content: "630" },
-      {
-        property: "og:image:alt",
-        content: "ROUT — QR codes en korte links met karakter",
-      },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:image", content: "https://rout.be/og-banner.jpg" },
       // Statusbalk van de browser volgt de huisstijl, licht én donker.
       { name: "theme-color", content: "#FBF9F5", media: "(prefers-color-scheme: light)" },
       { name: "theme-color", content: "#131211", media: "(prefers-color-scheme: dark)" },
