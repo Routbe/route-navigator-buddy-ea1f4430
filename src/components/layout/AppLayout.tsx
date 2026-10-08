@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
 import { BarChart3, ChevronRight } from "lucide-react";
 import { Link } from "@/lib/router-compat";
 import { RoutLogo } from "@/components/RoutLogo";
@@ -48,6 +49,7 @@ export function AppLayout({
   trustBadges = false,
 }: AppLayoutProps) {
   const hidden = useHeaderReveal();
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <header
